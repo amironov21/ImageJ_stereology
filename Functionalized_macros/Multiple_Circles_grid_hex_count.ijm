@@ -1,5 +1,5 @@
 /*
-Makes isotropic grid with circles and points as non-destructive overlay.
+Makes isotropic grid with circles and points as non-destructive overlay in hexagonal pattern.
 You do not need to rotate the grid to get isotropic line orientation.
 Do not forget to "Set Scale" to get correct printout of grid parameters.
 Parameters of the grid are reflected in the "Multiple Circles grid parameters" window.
