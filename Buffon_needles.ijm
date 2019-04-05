@@ -15,16 +15,17 @@ between preset numbers of needles thrown.
 
 After needles and line grid are generated you will need to use [Multipoint Tool]
 (already selected by macro) to click on intersections between needles and a
-set of parallel lines.
-Macro will wait for you to finish selection and click [OK] button.
+set of parallel lines. Counts made in error can be undone by Alt-clicking the point.
+Macro will wait for you to finish your selection. Then click [OK] button.
 
 Parameters such as probability of a needle hitting parallel line, needle length, 
-distance between parallel lines and Pi value are presented in separate window 
-"Buffon's needles". It allows comparing calculated and estimated values.
+distance between parallel lines and Pi value are presented in separate 
+"Buffon's needles" window. It allows comparing calculated and estimated values.
  
 Version: 1.0
 Date: 03/11/2018
 Author: Aleksandr Mironov amj-box@mail.ru
+This and other stereological macros are located at https://github.com/amironov21/ImageJ_stereology
 */ 
 
 requires("1.52i");
