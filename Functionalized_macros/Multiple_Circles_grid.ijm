@@ -20,6 +20,7 @@ area per unit volume) in isotropic uniform random sections.
 Version: 1.1
 Date: 12/11/2018
 Author: Aleksandr Mironov amj-box@mail.ru
+This and other stereological macros are located at https://github.com/amironov21/ImageJ_stereology
 */ 
 
 requires("1.52i");
