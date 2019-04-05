@@ -49,6 +49,7 @@ this macro.
 Version: 1.2
 Date: 28/11/2018
 Author: Aleksandr Mironov amj-box@mail.ru
+This and other stereological macros are located at https://github.com/amironov21/ImageJ_stereology
 */
 
 requires("1.52i");
