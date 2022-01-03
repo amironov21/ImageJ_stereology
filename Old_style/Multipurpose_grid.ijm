@@ -1,7 +1,7 @@
 /*Makes grid based on multi-purpose grid from Gundersen & Jensen 
 (J Microsc. 1987, 147:229-6) for stereological quantification as 
 non-destructive overlay. 
-Options include lines and crosses of differnet density.
+Options include lines and crosses of different density.
 Do not forget to "Set Scale" to get correct printout of grid parameters.
 Parameters of the grid are reflected in the "Multipurpose grid parameters" window.
 
@@ -15,27 +15,31 @@ in isotropic uniform random sections.
 Test line per point (l/p) constant is used to estimate surface density (surface
 area per unit volume in isotropic uniform random sections. 
 
-Version: 1.1
-Date: 29/10/2018
+Version: 2.0
+Date: 03/01/2022
 Author: Aleksandr Mironov amj-box@mail.ru
 */
 
 //help
 html = "<html>"
-	+"<h1><font color=navy>Multipurpose Stereological Grid</h1>"
-	+"<font color=navy>based on Gundersen & Jensen (J Microsc. 1987, 147:229-6)<font color=black><br><br>"
-	+"Standard grid tile includes 4 regular points and 2 segmented lines<br><br>"
+	+"<h1><font color=navy>Multi-purpose Stereological Grid, ver. 2.0</h1>"
+	+"<font color=navy>based on Gundersen & Jensen (J Microsc. 1987, 147:229-6)<br><br>"
+	+"<b><font color=red>Standard (default) grid tile</b><font color=black> includes 2 segmented lines and 4"
+	+" regular points (as crosses) at lines'<br> ends, one 'encircled' point (which is "
+	+"included into regular points set) and 12 additional 'dense' points.<br><br>"
 	+"<b><font color=purple>Grid density</b> can be set by number of tiles or by area per point<br><br>"
 	+"<font color=purple><b><u>Options:</u></b><br>"
 	+"<b>New Overlay</b> - removes previous overlays<br>"
 	+"<b>Random Offset</b> - randomizes grid location<br>"
 	+"<b>Tile density</b> - determines density of the grid <br><br>"
-	+"<b>Encircled Points</b> - one additional point per grid tile <br>"
-	+"<b>Dense Points</b> - 16 additional points per grid tile <br><br>"
+	+"<b>Encircled Points</b> - marks 1 sparse point per grid tile <br>"
+	+"<b>Dense Points</b> - adds 16 points to regular 4 per grid tile <br><br>"
 	+"<b><u>Points ratio:</u></b><br>"
-	+"Encircled:Regular:Dense = 1:4:16<font color=black><br><br>"
-	+"<b><font color=red>Set Scale<font color=black></b> to get correct printout of the grid parameters,<br>" 
-	+"which are reflected in the 'Multipurpose grid parameters' window<br><br>"
+	+"Encircled:Regular:Dense = 1:4:20<br><br>"
+	+"<b>Default assumptions for correct calculations:</b><br>"
+	+"1) Dense points include all grid points<br>"
+	+"2) Regular points are at lines' ends and include encircled points<br>"
+	+"3) Encircled points include only themselves<br><br>"
 	+"<b><font color=green>Useful parameters:</b><br><br>"
 	+"<font color=green> <i><u>Area per point</u></i> can be used to estimate an area in 2D samples<br>" 
 	+"or volume density isotropic uniform random sections<br><br>"
@@ -44,77 +48,79 @@ html = "<html>"
 	+"<i><u>Grid constant a/l (area per line unit)</u></i> is used to estimate total lenght<br>"
 	+"of a flat stucture. Total lenght equals to number of intersections<br>"
 	+"multiplied by PI/2 times the grid constant a/l<br>"
-	
+
+//Check for open image
+if (nImages==0) { 
+	exit("No open images detected! \n\nPlease, open an image ..."); 
+	} 
+
+getDimensions(width, height, channels, slices, frames);
+getPixelSize(unit, pw, ph, pd);//getting pixel size
+
+//Check for scale
+if (unit == "pixels") {
+	Dialog.create("Multi-purpose Stereological Grid, ver. 2.0");
+	Dialog.addMessage("This macro needs proper image scale to be set! \n\nPlease, set the scale using 'Properties...' option in pop-up window \n\nOtherwise, all calculations will show pixels ...") 
+	Dialog.show();
+	run("Properties...");
+	}
+
+getPixelSize(unit, pw, ph, pd);//update pixel size
+
 //Initial dialog for image roataion and grid tile size
-Dialog.create("Multipurpose Stereological Grid, ver. 1.1"); 
+Dialog.create("Multi-purpose Stereological Grid, ver. 2.0"); 
 Dialog.setInsets(0, 20, 0);
 Dialog.addChoice("Set grid dimensions:", newArray("by tiles density", "by area per point"));
-Dialog.addCheckbox("Image Random Rotation", false);
 Dialog.addHelp(html);
 Dialog.show();
-ImgRot = Dialog.getCheckbox();
-dimensions = Dialog.getChoice();
-getPixelSize(unit, pw, ph, pd);
+dimensions = Dialog.getChoice();//getting grid density
 
 //Main dialog box for grid parameters
 Dialog.create("Grid parameters");
 Dialog.addMessage("          GENERAL:");
-Dialog.addCheckbox("Grid Random Offset", true);
-Dialog.addCheckbox("New Overlay", true);
-Dialog.addNumber("Line thickness =", 1,0,2,"pixels");
-if (dimensions=="by tiles density") { 
-	Dialog.addNumber("Tile density  =", 3,0,2,"per short side"); 
+Dialog.addCheckbox("Grid Random Offset", true);// checkbox1
+Dialog.addCheckbox("New Overlay", true);// checkbox2
+Dialog.addChoice("Grid color:", newArray("cyan", "red", "yellow", "green", "blue", "magenta", "orange", "black", "white"));// choice1
+Dialog.addNumber("Line thickness =", 1,0,2,"pixels");// number1
+if (dimensions=="by tiles density") { // number2
+	Dialog.addNumber("Tile density  =", 1,0,2,"per short side"); 
 	} else { 
 	Dialog.addNumber("Area per point  =", 10000,2,8," "+unit+"^2"); 
 	};  
+Dialog.addMessage("__________________________________");
 Dialog.addMessage("          TEST POINTS:");
-Dialog.addCheckbox("Encircled Points (1/4 of regular)", true);
-Dialog.addCheckbox("Dense Points (x4 of regular)", true);
-Dialog.addChoice("Regular points color:", newArray("cyan", "red", "yellow", "green", "blue", "magenta", "orange", "black", "white"));
-Dialog.addChoice("Dense points color:", newArray("green", "yellow", "red", "blue", "cyan", "magenta", "orange", "black", "white"));
+Dialog.addCheckbox("Mark 'Encircled' Points (1/4 of regular points)", true);// checkbox3
+Dialog.addCheckbox("Add 'Dense' Points (x4 of regular points)", true);// checkbox4
+Dialog.addMessage("__________________________________");
 Dialog.addMessage("          TEST LINES:");
-Dialog.addCheckbox("Horizontal segmented", true);
-Dialog.addCheckbox("Vertical segmented", false);
-Dialog.addCheckbox("Horizontal solid (x3 of segmented)", false);
-Dialog.addCheckbox("Vertical solid (x3 of segmented)", false);
-Dialog.addChoice("Line color:", newArray("cyan", "red", "green", "magenta", "blue", "yellow", "orange", "black", "white")); 
+Dialog.addCheckbox("Horizontal segmented", true);// checkbox5
+Dialog.addCheckbox("Vertical segmented", false);// checkbox6
+Dialog.addCheckbox("Horizontal solid (x3 of segmented)", false);// checkbox7
+Dialog.addCheckbox("Vertical solid (x3 of segmented)", false);// checkbox8
 Dialog.addHelp(html);
 Dialog.show(); 
 
 name = getTitle();
 
 //grid parameters 
-offset = Dialog.getCheckbox();
-new = Dialog.getCheckbox();
-t = Dialog.getNumber();
-dimens = Dialog.getNumber();
-circ = Dialog.getCheckbox();
-dense = Dialog.getCheckbox();
-rpcolor = Dialog.getChoice(); 
-dpcolor = Dialog.getChoice();
-hor_seg = Dialog.getCheckbox();
-ver_seg = Dialog.getCheckbox();
-hor_sol = Dialog.getCheckbox();
-ver_sol= Dialog.getCheckbox();
-lcolor = Dialog.getChoice();
+offset = Dialog.getCheckbox();// checkbox1
+new = Dialog.getCheckbox();// checkbox2
+Lthick = Dialog.getNumber();// number1
+dimens = Dialog.getNumber();// number2
+circP = Dialog.getCheckbox();// checkbox3
+denseP = Dialog.getCheckbox();// checkbox4
+color = Dialog.getChoice();// choice1
+H_segm_Line = Dialog.getCheckbox();// checkbox5
+V_segm_Line = Dialog.getCheckbox();// checkbox6
+H_solid_Line = Dialog.getCheckbox();// checkbox7
+V_solid_Line= Dialog.getCheckbox();// checkbox8
 
 //initial settings for l/p
-vsg=hsg=vsl=hsl=0;
-
-//Random rotation for image
-getDimensions(a, b, channels, slices, frames);
-c = sqrt(a*a + b*b);
-d = random;
-e = d*360;
-if (ImgRot == true) {
-		run("Canvas Size...", "width=c height=c position=Center zero");
-		run("Rotate... ", "angle=e interpolation=Bicubic");
-		};
+vsg=hsg=vsl=hsl=0;//setting counters for lines lenght
 
 //tile size
-getDimensions(width, height, channels, slices, frames);
 if (dimensions=="by tiles density") {
-	if (width>=height) { 
+	if (width>=height) { //finding shortest side for tile calculations
 	ss = height; 
 	} else { 
 	ss = width; 
@@ -123,8 +129,8 @@ if (dimensions=="by tiles density") {
 	}else {
 	tileside = sqrt(4*dimens/ph/pw);
 	}
-pointd = tileside/4;
-pointr = tileside/2;
+pointd = tileside/4;//distance between dense points
+pointr = tileside/2;//distance between regular points
 
 //check overlay
 if (new == true) Overlay.remove;
@@ -132,15 +138,15 @@ if (new == true) Overlay.remove;
 //creating random offset 
 off1 = random; 
 off2 = random; 
-if (offset == false) off1 = off2 = 0.5; 
+if (offset == false) off1 = off2 = 1;//no offset 
 xoff = round(pointd*off1);
 yoff = round(pointd*off2);
 
-setColor(lcolor);
-setLineWidth(t);
+setColor(color);
+setLineWidth(Lthick);
 
 //Horizonal solid lines
-if (hor_sol == true){	
+if (H_solid_Line == true){	
 	y = yoff;
 	while (true && y<height) { 
 		Overlay.drawLine(0, y, width, y);
@@ -152,7 +158,7 @@ if (hor_sol == true){
 	}
 
 //Vertical solid lines
-if (ver_sol == true){
+if (V_solid_Line == true){
 	x = xoff;
 	while (true && x<width) { 
 		Overlay.drawLine(x, 0, x, height);
@@ -164,7 +170,7 @@ if (ver_sol == true){
 	}
 
 //Horizonal segmented lines
-if (hor_seg == true){
+if (H_segm_Line == true){
 hsg = 1;
 
 //Y loop1
@@ -201,7 +207,7 @@ while (y1<height) {
 }
 
 //Vertical segmented lines
-if (ver_seg == true){
+if (V_segm_Line == true){
 vsg = 1;
 
 //X loop1
@@ -239,7 +245,6 @@ while (x1<width) {
 	
  //Regular points
 
-setColor(rpcolor);
 //Initial coordinates X
 x1 = xoff;
 x2 = x1 - pointd/16; 
@@ -273,8 +278,7 @@ while (x1<width) {
 	} 
 
 //Dense points 
-setColor(dpcolor);
-if (dense == true){
+if (denseP == true){
 	//Initial coordinates X;
 	x1 = xoff - pointd/2;
 	x2 = x1 - pointd/16; 
@@ -308,8 +312,7 @@ if (dense == true){
 }
 
 //Encircled points
-setColor(lcolor);
-if (circ == true){
+if (circP == true){
 	
 	//Initial coordinates X
 	x1 = xoff;
@@ -343,37 +346,35 @@ if (window == false){
 	};
 	
 print(title, "\nMultipurpose Grid for sample ["+name+"]");
-print(title, "\n\nOriginal Image size = "+a+"x"+b+" pixels");
-if (ImgRot == true){  
-	print(title, "\n\nCanvas size after rotation = "+width+"x"+height+" pixels");
-};
+print(title, "\n\nOriginal Image size = "+width+"x"+height+" pixels");
 print(title, "\nPixel size = "+pw+" "+unit);
 print(title, "\nScale = "+1/pw+" pixels/"+unit);
 print(title, "\n\nArea per regular point ="+tileside*tileside*pw*ph/4+"  "+unit+"^2");
-if (dense == true){ 
+if (denseP == true){ 
 	n = 16;
 	}else{
 	n = 0;
 	};
-if (circ == true){ 
+if (circP == true){ 
 	print(title, "\nArea per encircled point ="+tileside*tileside*pw*ph+"  "+unit+"^2"); 
 	};
 print(title, "\nArea per any point ="+tileside*tileside*pw*ph/(4+n)+"  "+unit+"^2");
 	
-if (ver_seg && ver_sol == true)
+if (V_segm_Line && V_solid_Line == true)
 vsg = 0; 
-if (hor_seg && hor_sol == true)
+if (H_segm_Line && H_solid_Line == true)
 hsg = 0; 
 z = vsg+hsg+vsl+hsl;
 lp = pw*tileside*z;
-if (hor_seg || ver_seg ||hor_sol || hor_sol == true){
+if (H_segm_Line || V_segm_Line ||H_solid_Line || H_solid_Line == true){
 	print(title, "\nTest line per any point(l/p) ="+lp/(4+n)+"  "+unit);
-		if (circ == true){
+		if (circP == true){
 		print(title, "\nTest line per encircled point(l/p) ="+lp+"  "+unit);
 		}
-		if (hor_seg || ver_seg ||hor_sol || hor_sol == true){
+		if (H_segm_Line || V_segm_Line ||H_solid_Line || H_solid_Line == true){
 		print(title, "\nTest line per regular point(l/p) ="+lp/4+"  "+unit);
 		}
 	print(title, "\nGrid constant a/l = "+2*pw*tileside/z+" "+unit);
 	}
 print(title, "\n _______________________\n");
+
