@@ -1,8 +1,9 @@
 /* INSTRUCTIONS
 
-Macro for object volume estimation using exhaustive serial sections.
+Macro for object volume estimation using exhaustive serial sections 
+with known thickness.
 It needs an image stack, it will not work on a single image.
- A grid of evenly-spaced points is displayed on cross-sections at 
+A grid of evenly-spaced points is displayed on cross-sections at 
 a user-specified z-interval and the user counts how many points 
 fall within each structure of interest. An algorithm then calculates 
 an approximate volume for each structure. This macro is based on 
