@@ -44,13 +44,13 @@ around 6cm3 in volume.
 Many thanks to Tobias Starborg and David Smith who helped in testing and improving
 this macro.
  
-Version: 1.22
-Date: 23/06/2021
+Version: 1.23
+Date: 30/12/2025
 Author: Aleksandr Mironov 
 Еmail: amj-box@mail.ru 
 */ 
 
-requires("1.53j"); 
+requires("1.54p"); 
  
 //help 
 html = "<html>" 
@@ -105,7 +105,8 @@ if (nImages==0) {
 		MRI_set();  //routine to open example MRI stack
 	} 
 } 
- 
+if (nImages==0) exit("No open stacks detected! \n\nPlease, open a stack ..."); 
+
 //Get stack parameters 
 getDimensions(width, height, channels, slices, frames); 
 getVoxelSize(VxWidth, VxHeight, VxDepth, unit);
@@ -140,16 +141,17 @@ Dialog.addHelp(html);
 Dialog.show(); 
  
  
-//Getting counting parameters 
+//Getting grid and counting parameters 
 new = Dialog.getCheckbox(); //check1 
 if (new == true) Overlay.remove; 
 offset = Dialog.getCheckbox(); //check2 grid offset
-color = Dialog.getChoice(); //choice2 points color
+color = Dialog.getChoice(); //choice1 points color
 type = Dialog.getChoice();//choice2 points type
-size = Dialog.getChoice();///choice2 points size
-ObjNmb = Dialog.getNumber();//number1 number of objects to esitmate
+size = Dialog.getChoice();///choice3 points size
+ObjNmb = Dialog.getNumber();//number1 number of objects to estimate
 number = Dialog.getNumber();//number2 number of points per shortest side
 reslice = Dialog.getNumber();//number3 how much to reslice
+
 tile = shortside/number; //sizing a tile of a grid
 PntNmb = round(width/tile*height/tile); //number of points depending on number of grid tiles
 PntArea = width*height*VxWidth*VxHeight/PntNmb; //setting area per 1 point
@@ -182,7 +184,7 @@ if (window == false){
 	setLocation(0, 520);  
 	}; 
 print(title, "\nCavalieri estimator for stack ["+name+"]"); 
-print(title, "\n\nStack size ="+width+" x "+height+" pixels, "+slices+" slices");//showing stakc size
+print(title, "\n\nStack size ="+width+" x "+height+" pixels, "+slices+" slices");//showing stack size
 print(title, "\nVoxel size = "+VxWidth+"X"+VxHeight+"X"+VxDepth+" "+unit); //showing voxel size
 print(title, "\nStack volume = "+width*height*slices*VxWidth*VxHeight*VxDepth+" "+unit+"3"); //showing stack volume
 print(title, "\n\nCounting grid parameters:"); 
@@ -205,7 +207,7 @@ print(title, "\n________________________\n");
 //Random grid offset  
 xoff = tile*random; 
 yoff = tile*random;  
-if (offset == false) xoff = yoff = 0; 
+if (offset == false) xoff = yoff = tile/2; 
  
 //Initial point coordinates  
 x1 = round(tile-xoff);  
@@ -230,7 +232,7 @@ ObjVol = newArray(ObjNmb); //new array for volume related to counted points
 headers = split(Table.headings,"\t"); 
  	 
 for (i=1; i<headers.length; i++) { 
-	ObjVol[i-1] = Table.get(headers[i],Table.size-1)*PntArea*VxDepth; //voulme calculation according to counts
+	ObjVol[i-1] = Table.get(headers[i],Table.size-1)*PntArea*VxDepth; //volume calculation according to counts
 	print(title,"\n "+CtrName[i-1]+" = "+Table.get(headers[i],Table.size-1)+" counts"+" / Volume = "+ObjVol[i-1]+unit+"3"); 
   	}; //displaying counting and volume results
 print(title,"\n==========================================\n"); 
@@ -241,7 +243,7 @@ function SysRdmPoints(x, y, x1, height, width, tile, color, size, type) {
 while (y<(height-1)) { 
 	while (x<(width-1)) { 
 		makePoint(x, y, size+color+type+" add"); 
-		Overlay.setPosition(0); 
+		Overlay.setPosition(0,0,0); 
 		x += tile; 
 		} 
 	y += tile; 
@@ -321,4 +323,3 @@ function MRI_instr() {
 	}
 	run("Select None");
 }
-
