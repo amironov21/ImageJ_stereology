@@ -55,7 +55,7 @@ requires("1.54p");
  
 //help 
 html = "<html>" 
-	+"<h1><font color=navy>Cavalieri volume estimator_ver.1.22</h1>" 
+	+"<h1><font color=navy>Cavalieri volume estimator_ver.1.23</h1>" 
 	+"<font color=navy><i>Macro for object volume estimation using exhaustive serial sections.<br>"  
 	+"It needs an image stack, it will not work on a single image.<br>"
 	+"A grid of evenly-spaced points is displayed on cross-sections at<br>" 
@@ -119,7 +119,7 @@ if (slices<2) {
 
 //Check for scale
 if (unit == "pixels") {
-	Dialog.create("Cavalieri volume estimator, ver. 1.22");
+	Dialog.create("Cavalieri volume estimator, ver. 1.23");
 	Dialog.addMessage("This macro needs proper scale to be set! \n\nPlease, set the scale using 'Properties...' option in pop-up window \n\nOtherwise, all calculations will show pixels ...") 
 	Dialog.show();
 	run("Properties...");
@@ -127,7 +127,7 @@ if (unit == "pixels") {
 getVoxelSize(VxWidth, VxHeight, VxDepth, unit);//update voxel size
 
 //Setting counting parameters 
-Dialog.create("Cavalieri volume estimator, ver. 1.22"); 
+Dialog.create("Cavalieri volume estimator, ver. 1.23"); 
 Dialog.addNumber("\n\nNumber of objects to estimate ", 2);//number 1 
 Dialog.addMessage("Counting grid parameters:"); 
 Dialog.addChoice("Points color:", newArray("red", "cyan", "magenta", "blue", "yellow", "orange", "green", "black", "white"));//choice1 
