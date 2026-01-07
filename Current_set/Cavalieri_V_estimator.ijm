@@ -48,7 +48,11 @@ this macro.
 Version: 1.23
 Date: 30/12/2025
 Author: Aleksandr Mironov 
-Еmail: amj-box@mail.ru 
+Еmail: amj-box@mail.ru
+
+This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.
+If you use the material, please read the license (https://creativecommons.org/licenses/by-nc/4.0/deed.en)
+and give credit appropriately.
 */ 
 
 requires("1.54p"); 
