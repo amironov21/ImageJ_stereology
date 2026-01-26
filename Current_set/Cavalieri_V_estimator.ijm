@@ -45,8 +45,8 @@ around 6cm3 in volume.
 Many thanks to Tobias Starborg and David Smith who helped in testing and improving
 this macro.
  
-Version: 1.23
-Date: 30/12/2025
+Version: 1.3
+Date: 26/01/2026
 Author: Aleksandr Mironov 
 Еmail: amj-box@mail.ru
 
@@ -59,7 +59,7 @@ requires("1.54p");
  
 //help 
 html = "<html>" 
-	+"<h1><font color=navy>Cavalieri volume estimator_ver.1.23</h1>" 
+	+"<h1><font color=navy>Cavalieri volume estimator_ver.1.3</h1>" 
 	+"<font color=navy><i>Macro for object volume estimation using exhaustive serial sections.<br>"  
 	+"It needs an image stack, it will not work on a single image.<br>"
 	+"A grid of evenly-spaced points is displayed on cross-sections at<br>" 
@@ -123,7 +123,7 @@ if (slices<2) {
 
 //Check for scale
 if (unit == "pixels") {
-	Dialog.create("Cavalieri volume estimator, ver. 1.23");
+	Dialog.create("Cavalieri volume estimator, ver. 1.3");
 	Dialog.addMessage("This macro needs proper scale to be set! \n\nPlease, set the scale using 'Properties...' option in pop-up window \n\nOtherwise, all calculations will show pixels ...") 
 	Dialog.show();
 	run("Properties...");
@@ -131,7 +131,7 @@ if (unit == "pixels") {
 getVoxelSize(VxWidth, VxHeight, VxDepth, unit);//update voxel size
 
 //Setting counting parameters 
-Dialog.create("Cavalieri volume estimator, ver. 1.23"); 
+Dialog.create("Cavalieri volume estimator, ver. 1.3"); 
 Dialog.addNumber("\n\nNumber of objects to estimate ", 2);//number 1 
 Dialog.addMessage("Counting grid parameters:"); 
 Dialog.addChoice("Points color:", newArray("red", "cyan", "magenta", "blue", "yellow", "orange", "green", "black", "white"));//choice1 
@@ -220,11 +220,16 @@ y1 = round(tile-yoff);
 x = x1; 
 y = y1; 
  
-//Calling systematic random points function 
-SysRdmPoints(x, y, x1, height, width, tile, color, size, type); 
+//Calling systematic random points function
+for (i = 1; i <= nSlices; i++) {
+    setSlice(i);
+	SysRdmPoints(x, y, x1, height, width, tile, color, size, type);
+	}
+//waitForUser;
  
 //Counting 
-Objects = toString(ObjNmb); 
+Objects = toString(ObjNmb);
+setSlice(1);
 setTool("multipoint"); 
 run("Point Tool...", "type=Circle color=Yellow size=Large label counter=0"); //setting multipoint tool active
 waitForUser("Click [OK] button after counting finished!", "Use MultiPoint Tool (currently set) to count events."+"\n  "+"\nFor each of your "+Objects+" objects change the Counter by double clicking on \nMulti-point Tool button in ImageJ Menu"+"\n  "+"\nClick OK when you finish counting."); //wait for user to finish clicking
@@ -244,9 +249,10 @@ print(title,"\n==========================================\n");
 close("Counts_"+name); //closing results table
 
 //Systematic random points 
-function SysRdmPoints(x, y, x1, height, width, tile, color, size, type) { 
+function SysRdmPoints(x, y, x1, height, width, tile, color, size, type) {
+run("Point Tool...", "label show");
 while (y<(height-1)) { 
-	while (x<(width-1)) { 
+	while (x<(width-1)) {
 		makePoint(x, y, size+color+type+" add"); 
 		Overlay.setPosition(0,0,0); 
 		x += tile; 
