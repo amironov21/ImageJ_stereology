@@ -86,10 +86,9 @@ requires("1.54p");
 html1 = "<html>"
 	+"<h1><font color=navy>Cell diagram</h1>"
 	+"<font color=black> You can use pre-drawn cell diagram<br>"
-	+" that includes nucleus and 3 structures M with known<br>"
-	+" 2D dimensions and stereological parameters, which are<br>"
-	+" indicated in a diagram. The image is calibrated to<br>"
-	+" 0.01 um pixel size and has a scale bar.<br><br>"
+	+"that includes nucleus and 3 structures M.<br>"
+	+"The image is calibrated to 0.01 um pixel size<br>" 
+	+"and has a scale bar.<br><br>"
 	
 html2 = "<html>"
 	+"<h1><font color=navy>Initial setup</h1>"
