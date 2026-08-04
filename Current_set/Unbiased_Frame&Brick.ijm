@@ -8,8 +8,9 @@
 "Central point" used to decide does the frame belong to the reference space.
 Anything that touches "Forbidden line" should be excluded from count.
 Anything that touches "Acceptance line" should be included into count.
-Objects in frames that are out of reference space are counted but the area(volume)
-of these frames are not included into the final estimation.
+Objects in frames that are out of reference space (central point does not hit 
+reference space) are counted but the area(volume) of these frames are not 
+included into the final number estimation.
 
 Counting objects in a volume concept:
 To estimate number of objects in a volume you need to compare each slice
@@ -31,8 +32,8 @@ Practical steps:
 Parameters of the grid and results of counting are reflected in 
 the "Frame(s) Parameters" window.
 
-Version: 2.0
-Date: 23/06/2021
+Version: 2.1
+Date: 04/08/2026
 Author: Aleksandr Mironov 
 Email: amj-box@mail.ru
 */
@@ -41,7 +42,7 @@ requires("1.53j");
 
 //help1
 html1 = "<html>"
-	+"<h1><font color=navy>Unbiased Counting Frame&Brick_v.2.0</h1>"
+	+"<h1><font color=navy>Unbiased Counting Frame&Brick_v.2.1</h1>"
 	+"<font color=navy>used to count number of objects in the area or the volume<br>"
 	+"based on:<br><br>" 
 	+"Gundersen HJG (J.Microsc. 1977, 111:219-223) and<br>"
@@ -66,13 +67,13 @@ html2 = "<html>"
 	+"<font color=green><b><u>Frame counting rules:</u></b><br><br>"
 	+"Objects in frames that are out of reference space<br>"
 	+"(i.e. frame's <b>Central Point</b> does not hit a reference space)<br>"	
-	+"are <b>counted</b><br><br>"
+	+"are <b>counted</b><br>"
 	+"but the area(volume) of these frames are<br>"
-	+"<b>not included</b> into the final estimation.<br><br>"
+	+"<b>not included</b> into the final numbers estimation.<br><br>"
 	
 //help3
 html3 = "<html>"
-	+"<h1><font color=navy>Unbiased Counting Frame&Brick_v.2.0</h1>"
+	+"<h1><font color=navy>Unbiased Counting Frame&Brick_v.2.1</h1>"
 	+"<font color=navy>used to count number of objects in a volume<br>"
 	+"based on:<br><br>" 
 	+"Sterio DC (J Microsc. 1984 May;134(Pt 2):127-36).<br>"
@@ -104,7 +105,7 @@ getVoxelSize(VxWidth, VxHeight, VxDepth, unit);
 
 //Check for scale
 if (unit == "pixels") {
-	Dialog.create("Unbiased Counting Frame&Brick_v.2.0");
+	Dialog.create("Unbiased Counting Frame&Brick_v.2.1");
 	Dialog.addMessage("This macro needs proper image or stack scale to be set! \n\nPlease, set the scale using 'Properties...' option in pop-up window \n\nOtherwise, all calculations will show pixels ...") 
 	Dialog.show();
 	run("Properties...");
@@ -112,7 +113,7 @@ if (unit == "pixels") {
 getVoxelSize(VxWidth, VxHeight, VxDepth, unit);//update voxel size
 
 //dialog box for frame parameters
-Dialog.create("Unbiased Counting Frame&Brick_v.2.0");
+Dialog.create("Unbiased Counting Frame&Brick_v.2.1");
 Dialog.addNumber("Number of frames in X =", 1);//number1
 Dialog.addNumber("Number of frames in Y =", 1);//number2
 Dialog.addNumber("Frame(s) area =", 50,0,2,"% of image area");//number3
@@ -296,3 +297,4 @@ function DrawFrame(x1,x2,x4,y,y1,y2,y3,y4,t,CPsize,CPcolor,color1,color2){
 	Overlay.setPosition(0);//display on all slices
 	}
 }
+
