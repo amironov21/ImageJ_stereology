@@ -71,8 +71,8 @@ but also the sclera (the dense outer layer of the eyeball) and the eye front
 chamber limited by the cornea. As a rough guide, the human eyeball has on average 
 of around 17cm2 of surface area.
  
-Version: 1.0
-Date: 19/03/2026
+Version: 1.1
+Date: 04/08/2026
 Author: Aleksandr Mironov 
 Еmail: amj-box@mail.ru
 
@@ -100,7 +100,7 @@ html1 = "<html>"
 	+"around <b>17cm2</b> of surface area.<br><br>"
 	
 html2 = "<html>" 
-	+"<h1><font color=navy>Spatial grid surface area estimator_ver.1.0</h1>" 
+	+"<h1><font color=navy>Spatial grid surface area estimator_ver.1.1</h1>" 
 	+"<font color=navy>A grid of evenly-spaced and mutually perpendicular lines along x,y and z axes<br>"
 	+"is displayed on stack slices.<br>"
 	+"The user counts X and Y test-line intersections with a boundary of the structure<br>"
@@ -169,7 +169,7 @@ name = getTitle();
 
 //Check for scale
 if (unit == "pixels") {
-	Dialog.create("Spatial grid surface area estimator, ver.1.0");
+	Dialog.create("Spatial grid surface area estimator, ver.1.1");
 	Dialog.addMessage("This macro needs proper scale to be set! \n\nPlease, set the scale using 'Properties...' option in pop-up window \n\nOtherwise, all calculations will show pixels ...") 
 	Dialog.show();
 	run("Properties...");
@@ -177,13 +177,13 @@ if (unit == "pixels") {
 getVoxelSize(VxWidth, VxHeight, VxDepth, unit);//update voxel size
 
 //Setting counting parameters 
-Dialog.create("Spatial grid surface area estimator, ver.1.0");
+Dialog.create("Spatial grid surface area estimator, ver.1.1");
 Dialog.addCheckbox("New Grid Overlay", true);//check1 
 Dialog.addCheckbox("Random Grid Offset", true);//check2 
-Dialog.addMessage("Counting grid:"); 
+Dialog.addMessage("Counting grid:", 14, "blue"); 
 Dialog.addChoice("Lines color:", newArray("red", "cyan", "magenta", "blue", "yellow", "orange", "green", "black", "white"));//choice1 
 Dialog.addNumber("Lines number:", 10,0,2,"within short side");//number 1
-Dialog.addMessage("Counter Setup:"); 
+Dialog.addMessage("Counter Setup:", 14, "blue"); 
 Dialog.addNumber("Number of objects", 2);//number 2
 Dialog.addMessage("Active stack can be resliced to have less slices. \nSlices will be removed using interval set by a user. \nPlease, make sure that "+slices+" slices in your stack \nare divisible by selected number");
 Dialog.addNumber("Count points on every ", 1,0,3,"slice");//number 3 
@@ -308,7 +308,7 @@ headers = split(Table.headings,"\t");
  	 
 for (i=1; i<headers.length; i++) { 
 	ObjSrfc[i-1] = Table.get(headers[i],Table.size-1)*2/LV; //surface area calculation according to counts
-	print(title,"\n "+CtrName[i-1]+" = "+Table.get(headers[i],Table.size-1)+" counts"+" equals to Volume = "+ObjSrfc[i-1]+unit+"2"); 
+	print(title,"\n "+CtrName[i-1]+" = "+Table.get(headers[i],Table.size-1)+" counts"+" equals to Surface Area = "+ObjSrfc[i-1]+unit+"¬2"); 
   	}; //displaying counting and surface area results
 print(title,"\n==========================================\n"); 
 close("Counts_"+name); //closing results table
@@ -391,3 +391,4 @@ function MRI_instr() {
 	run("Properties...", "channels=1 slices=27 frames=1 pixel_width=0.08 pixel_height=0.08 voxel_depth=0.4");
 	run("Maximize");
 	}
+
