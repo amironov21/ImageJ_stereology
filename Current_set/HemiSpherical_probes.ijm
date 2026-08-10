@@ -158,8 +158,8 @@ length with virtual isotropic surface probes. Front Neuroanat.
 2018 Jun 12;12:49. (doi: 10.3389/fnana.2018.00049)
 
 
-Version: 1.0
-Date: 07/08/2026
+Version: 1.1
+Date: 10/08/2026
 Author: Aleksandr Mironov 
 Еmail: amj-box@mail.ru
 
@@ -177,7 +177,7 @@ macro "HemiSpherical_Probes" {
 //help 
 
 html = "<html>" 
-	+"<h1><font color=navy>HemiSpherical probes length estimator, ver.1.0</h1>" 
+	+"<h1><font color=navy>HemiSpherical probes length estimator, ver.1.1</h1>" 
 	+"<font color=navy>A grid of circles, representing the continuous surface of hemispherical<br>"
  	+"probes, is generated across the slices of an image stack.<br>"
 	+"Intersections between linear features and the hemispherical probe<br>"
@@ -236,7 +236,7 @@ if (nSlices<2) exit("Active image is not a stack! \n\nPlease, select (or open) a
 //Check for scale
 getVoxelSize(VxWidth, VxHeight, VxDepth, unit);
 	if (unit == "pixels") {
-		Dialog.create("HemiSpherical probes length estimator, ver.1.0");
+		Dialog.create("HemiSpherical probes length estimator, ver.1.1");
 		Dialog.addMessage("This macro needs proper scale to be set! \n\nPlease, set the scale using 'Properties...' option in pop-up window \n\nOtherwise, all calculations will show pixels ...") 
 		Dialog.show();
 		run("Properties...");
@@ -247,13 +247,20 @@ getDimensions(width, height, channels, slices, frames);
 ZtoXY = VxDepth/VxWidth;//pixel size normalization factor for spherical segments calculations
 name = getTitle();
 shortside = minOf(width, height); 		//shortest XY side of image
+tileChk = 5*(slices-1)*ZtoXY/4;//
+HSphChk = Math.ceil(shortside/tileChk/2);//minimum amount of probes per short side to get full probe layer
+
 
 //Setting counting parameters 
-Dialog.create("HemiSpherical probes length estimator, ver.1.0");
+Dialog.create("HemiSpherical probes length estimator, ver.1.1");
 Dialog.addCheckbox("New Grid Overlay", true);					//check1 
 Dialog.addCheckbox("Random Grid Offset", true);					//check2
-Dialog.addMessage("Probes parameters:", 14, "blue"); 
-Dialog.addNumber("Probes number:", 3,0,2,"within short side");	//number 1
+Dialog.addMessage("Probes parameters:", 14, "blue");
+Dialog.setInsets(0,20,0);
+Dialog.addMessage("Please, choose not less than "+HSphChk+" probes within a stack's",  12, "magenta");
+Dialog.setInsets(0,20,0);
+Dialog.addMessage("short side to get at least one layer of full hemispheres",12, "magenta");
+Dialog.addNumber("Probes number:", HSphChk,0,2,"within short side");	//number 1
 Dialog.addChoice("Main color:", newArray("red", "green", "magenta", "blue", "yellow", "cyan", "orange", "pink"));//choice1 
 Dialog.addChoice("Probe 'cap' color:", newArray("green", "red", "magenta", "blue", "yellow", "cyan", "orange", "pink"));//choice2
 Dialog.addNumber("Probe line thickness:", 1);					//number2
