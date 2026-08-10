@@ -36,6 +36,11 @@ Version: 2.1
 Date: 04/08/2026
 Author: Aleksandr Mironov 
 Email: amj-box@mail.ru
+
+This work is licensed under a Creative Commons Attribution-NonCommercial 
+4.0 International License.
+If you use this material, please read the licence and give appropriate 
+credit: https://creativecommons.org/licenses/by-nc/4.0/deed.en
 */
 
 requires("1.53j");
