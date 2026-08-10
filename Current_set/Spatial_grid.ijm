@@ -14,8 +14,8 @@ must have penetrated the surface of the object. So, total count of z lines
 intersection with the object can be tracked as points move either 
 from "in" to "out" or from "out" to "in". 
 
-Then an  algorithm then calculates an approximate surface for 
-each structure according to the formula:
+Then an approximate surface for each structure is calculated
+according to the formula:
 
 S = 2*(Ix+Iy+Iz)/(l/v), where
 
@@ -66,10 +66,9 @@ analysed.
 If no image stack is open when the macro is run then the user will be asked to 
 open an example stack from ImageJ mri-stack.tif. For analysis of this stack 
 the default parameters should be left unchanged. A good practice exercise is to 
-estimate the surface of both eyeballs. Consider not only the vitreous body (dark) 
-but also the sclera (the dense outer layer of the eyeball) and the eye front 
-chamber limited by the cornea. As a rough guide, the human eyeball has on average 
-of around 17cm2 of surface area.
+estimate the surface of both eyeballs. Consider that the eye front 
+chamber limited by the cornea is also the part of an eye. As a rough guide, 
+the human eyeball has on average of around 17cm2 of surface area.
  
 Version: 1.1
 Date: 04/08/2026
