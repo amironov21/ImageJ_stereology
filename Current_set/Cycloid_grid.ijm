@@ -138,6 +138,9 @@ x0, y0, tmax, newStart = newArray(2);
 
 macro "Cycloid_Grid" {
 
+//Image check
+if (nImages==0) exit ("No open images detected! \nPlease, open an image.");  
+
 //help
 html1 = "<html>"
 	+"<h1><font color=navy>Counters for classes<br></h1>"
