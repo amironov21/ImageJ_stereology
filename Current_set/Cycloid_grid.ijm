@@ -129,7 +129,7 @@ This work is licensed under a Creative Commons Attribution-NonCommercial
 (https://creativecommons.org/licenses/by-nc/4.0/deed.en)
 and give appropriate credit.
 */
-newImage("scratch", "8-bit Ramp", 700, 500, 1);
+//newImage("scratch", "8-bit Ramp", 700, 500, 1);
 
 requires("1.54p");
 
