@@ -1,28 +1,137 @@
-/*Makes a grid based on cycloid grid from Baddeley, A.J., 
-H.J.G. Gundersen, and L.M. Cruz-Orive, J. of Microsc. 1986, 
-142:259-276. for stereological quantification on vertical uniform 
-random sections as non-destructive overlay.
+/*
+This macro creates stereological grids in two variants that use 
+cycloid test lines in different orientations:
+one for surface density estimation ("horizontal") and 
+one for length density estimation ("vertical").
+The required variant is selected at the start of the macro.
 
-Image vertical axis should be aligned with the grid vertical axis
-(placed on the left side). 
+The macro should be used only with vertical uniform random (VUR) 
+sections (see Baddeley et al., 1986). To generate VUR sections:
+1) Select an arbitrary horizontal plane for the object.
+This may be a useful plane with easily recognisable features.
+2) Generate isotropic orientations within this horizontal plane.
+3) Section the specimen at a uniform random position along the 
+selected orientation.
 
-Do not forget to "Set Scale" to get correct printout of the grid parameters, 
-which are reflected in the "Cycloid grid parameters" window.
+VUR sections have an advantage over isotropic uniform random (IUR) 
+sections because they allow tissue to be sectioned in orientations with 
+easily recognisable patterns. In contrast, purely isotropic sections may 
+produce unusual tissue sections in which users may struggle to recognise
+even well-known structures.
+The vertical axis of the image should be aligned with the vertical axis 
+of the grid (shown on the left side).
 
-"Central Points" makes two points in every tile.
-"Line Points" makes 4 additional points per tile.
-"Segmented lines" makes circular arcs  with total length
-2 times shorter than solid lines.
+Do not forget to use "Set Scale" to obtain the correct printout of the 
+grid parameters, which are displayed in the "Cycloid Grid Parameters" window.
 
-Test line per point (l/p) constant is used to estimate surface density (surface
-area per unit volume) in uniform random sections. 
 
-Version: 1.1
-Date: 04/09/2014
-Author: Aleksandr Mironov amj-box@mail.ru
+Grid structure
+
+Stereological probes include evenly spaced lines and points (crosses) of
+different densities, with an optional random starting position.
+One tile of the grid contains either solid cycloids in opposite phases
+(convex and concave humps) or segmented cycloids containing only 
+half-segments of the curve.
+Each tile contains six points: four on the cycloid curve and two outside it.
+The "Segmented lines" option creates cycloid arcs with a total length 
+two times shorter than that of solid lines.
+
+The test line per point (l/p) constant is used to estimate surface density 
+(surface area per unit volume) or length density (length per unit volume) 
+in uniform random sections.
+
+
+Counters setup
+
+Counters Setup activates the Multipoint Tool for counting probe hits under
+different scenarios. Users assign the counter names manually.
+The last counter must be assigned to the reference space.
+To change the active counter:
+- Double-click the Multi-Point Tool in the ImageJ toolbar.
+- Select the desired counter from the Counter drop-down menu.
+
+
+Counting procedure
+
+- Select the appropriate counter. The first counter is automatically 
+selected as Counter 0.
+- Click on each test point or line intersection that falls within the 
+object of interest.
+- To remove an incorrectly placed point, Alt-click it.
+
+The macro converts the counted values into stereological estimates 
+using the appropriate formulas.
+All results are printed to the [Cycloid Grid Parameters] window.
+To inspect the original counter values, press Alt+Y.
+
+
+Surface density estimation
+
+Because a VUR section is not isotropic in 3D space, surface density 
+estimation requires cycloid lines with their short axis parallel to the 
+vertical direction to produce an isotropic orientation of linear probes. 
+Combining VUR sections with a grid of cycloid lines oriented in this 
+manner is equivalent to a collection of IUR lines in 3D space.
+
+To estimate surface density, two counts must be made on a section:
+1) the number of intersections between the cycloid lines and the boundary 
+of interest (I);
+2) the number of points that fall within the reference space (P).
+The test system itself has a known length of cycloid per point (l/p).
+
+Surface density is calculated according to the formula:
+Sv = (2 × I) / (lP × P), where
+lP is the length of test line per grid point (l/p), I is the number 
+of intersections between the linear probe and the surface, and P is 
+the number of points hitting the reference space.
+
+
+Length density estimation
+
+For length density estimation, VUR sections should show all structures in
+their volume as a 2D total projection. Length can be estimated by
+counting the number of intersections between the linear feature and IUR 
+planes in 3D space. "Virtual" IUR planes inside VUR sections with known 
+thickness (t) can be generated by projecting a cycloid through the sections 
+if the major (long) axis of the cycloid is parallel to vertical direction 
+(Gokhale, 1999). Combination of VUR sections with a grid of cycloid 
+"virtual" surfaces oriented in this manner is equivalent to a collection 
+of IUR planes in 3D space.
+
+Then, length density can be estimated as follows:
+Lv = (2 / (t × lP)) × (I / P), where
+Lv is length density, t is section thickness, lP is the length of test 
+line per grid point (l/p), I is the number of intersections between the 
+linear probe and the feature of interest, and P is the number of points 
+hitting the reference space.
+
+
+It is important to perform approximately 8–10 runs for each stereological 
+parameter to be estimated in order to achieve better precision. In practice, 
+reliable precision cannot usually be achieved from a single sample. 
+If precision is insufficient, increase the density of the probes.
+
+
+The Cycloid Grid macro is based on the following publications:
+- Baddeley, A.J. et al., J. Microsc. 1986, 142:259–276.
+- Gokhale, A.M., J. Microsc. 1990, 159:133–141.
+- Howard, V. and Reed, M., 2004. Unbiased stereology: three-dimensional measurement 
+in microscopy. Garland Science.
+
+Version: 2.1
+Date: 14/08/2026
+Author: Aleksandr Mironov 
+E-mail: amj-box@mail.ru
+
+
+This work is licensed under a Creative Commons Attribution-NonCommercial 
+4.0 International License. If you use this material, please read the licence
+(https://creativecommons.org/licenses/by-nc/4.0/deed.en)
+and give appropriate credit.
 */
+newImage("scratch", "8-bit Ramp", 700, 500, 1);
 
-requires("1.49g");
+requires("1.54p");
 
 var
 x0, y0, tmax, newStart = newArray(2);
@@ -30,82 +139,122 @@ x0, y0, tmax, newStart = newArray(2);
 macro "Cycloid_Grid" {
 
 //help
+html1 = "<html>"
+	+"<h1><font color=navy>Counters for classes<br></h1>"
+	+"<font color=black><b>Name</b> the counters according to your <u>classes</u>.<br><br>"
+	+"The <b>last counter</b> is reserved for a <b><font color=red>reference space<br>" 
+	+"<font color=black></b> and should use <b>points</b> as stereological probes.<br><br>"
+	+"<b>Results</b> of counting will be printed out in <br>'Cycloid grid parameters' window."
+
+	
 html = "<html>"
 	+"<h1><font color=navy>Cycloid Grid</h1>"
-	+"<font color=navy>is a linear test system for vertical uniform random sections<font color=black><br><br>"
-	+"<font color=navy>based on Baddeley, Gundersen, Cruz-Orive (J. of Microsc. 1986, 142:259-276)<font color=black><br><br>"
-	+"<font color=purple><b><u>Options:</u></b><br>"
-	+"<b>Tile density</b> - determines density of the grid <br>"
-	+"<b>Central Points</b> - two points per grid tile <br>"
-	+"<b>Line Points</b> - 4 additional points per grid tile <br><br>"
-	+"<b>New Overlay</b> - removes previous overlays<br>"
+	+"<font color=navy>For proper and detailed theoretical and practical explanations,<br>"
+	+"please, refer to the text at the beginning of this macro.<br><br>"
+	+"<font color=black><b>Grid tile</b> contains one cycloid line with positive and negative hump<br>"
+	+"(4 segments) and 6 points (4 segment end points plus 2 central points).<br><br>"
+	+"<b><font color=black>Grid Type: </b> choose between surface density or length density estimation.<br>"
+	+"<b>Tile density: </b>number of tiles in horizontal orientation per image height.<br><br>"
+	+"<b>Line Type</b> - segmented lines arcs are half of total length of solid cycloid lines<br>"
+	+"<b>Color</b> and <b>Thickness</b> are self explanatory.<br><br>"
+	+"<b>Counting</b> - click on line probe intersections with object surfaces<br>"
+	+"(for <b>Surface Density</b>) or elongated objects (for <b>Length Density</b>) in relation <br>"
+	+"to a reference volume (estimated by point counting).<br><br>"
+	+"<b>Number of classes:</b> total number of classes including a reference space.<br>"
+	+"The <b>last counter</b> is reserved for a <b>reference space</b> and should use<br>" 
+	+"<b>points</b> as stereological probes.<br><br>"	
+	+"For <b>Length Density</b> estimation indicate the section thickness<br>"
+	+"including a reference space.<br><br>"
+	+"<b>New Overlay</b> - removes old overlay<br>"
 	+"<b>Random Offset</b> - randomizes grid location<br>"
-	+"<b>Segmented lines</b> - arcs with half of total length of solid lines<br><br>"
-	+"<font color=red><b>Set Scale</b><font color=black> to get correct printout of the grid parameters,<br>" 
-	+"which are reflected in the 'Cycloid grid parameters' window<br><br>"
-	+"<font color=green><b>Useful parameters:</b><br><br>"
-	+"<i><u>Area per point</u></i> can be used to estimate an area in 2D samples<br>" 
-	+"or volume density in uniform random sections<br><br>"
-	+"<i><u>Test line per point</u></i> constant is used to estimate surface density<br>"
-	+"(surface area per unit volume) in vertical uniform random sections<br><br>"
+	+"<b>Vertical Axis</b> - shows vertical axis as an arrow<br><br>"
+	+"Please, <b>Set Scale</b> to get correct printout of the grid parameters,<br>" 
+	+"which will be reflected in the 'Cycloid grid parameters' window.<br><br>"
+
 	
 // Cycloid settings
-tmax = 3.251;
-nPoints = 30;
-getDimensions(w, h, channels, slices, frames);
+tmax = 3.251;//coefficient to build 1/4 of full cycloid arc
+nPoints = 30;//segments in 1/4 of full cycloid arc
+getDimensions(width, height, channels, slices, frames);
+getVoxelSize(VxWidth, VxHeight, VxDepth, unit);
 name = getTitle();
 stSegm = random;
 
-//Creating dialog box
-Dialog.create("Cycloid Grid, ver. 1.1"); 
-Dialog.addNumber("Tile density  =", 6,0,2,"within height");    
-Dialog.addCheckbox("Central Points", true); 
-Dialog.addCheckbox("Line Points (x2 of central)", true);
-Dialog.addMessage("\n ");
-Dialog.addChoice("Line type", newArray("segmented", "solid"));
-Dialog.addNumber("Line thickness =", 1,0,2,"pixels");
-Dialog.addChoice("Line color:", newArray("cyan", "red", "green", "magenta", "blue", "yellow", "orange", "black", "white"));
-Dialog.addChoice("Central Point color:", newArray("green", "cyan", "red", "magenta", "blue", "yellow", "orange", "black", "white"));
-Dialog.addCheckbox("New Overlay", true);  
-Dialog.addCheckbox("Random Offset", true);
-Dialog.addCheckbox("Show Vertical Axis", true); 
+	if (unit == "pixels") {
+		Dialog.create("Cycloid grid, ver.1.1");
+		Dialog.addMessage("This macro needs proper scale to be set! \n\nPlease, set the scale using 'Properties...' option in pop-up window \n\nOtherwise, all calculations will show pixels ...") 
+		Dialog.show();
+		run("Properties...");
+		getVoxelSize(VxWidth, VxHeight, VxDepth, unit);//update voxel size
+	}
+
+Dialog.create("Cycloid Grid, ver. 1.1");
+Dialog.addMessage("Grid parameters:", 14, "blue");
+Dialog.addChoice("Grid Type:", newArray("Surface Density", "Length Density"));// choice 1
+Dialog.addNumber("Tile density  =", 6,0,2,"within height");// number 1
+Dialog.addMessage("Lines:", 14, "blue");
+Dialog.addChoice("Type", newArray("solid", "segmented"));// choice 2
+Dialog.addNumber("Thickness =", 1,0,2,"pixels");// number 2
+Dialog.addChoice("Color:", newArray("cyan", "red", "green", "magenta", "blue", "yellow", "orange", "black", "white"));// choice 3
+Dialog.addMessage("Counting:", 14, "blue");
+Dialog.setInsets(0,20,0);
+Dialog.addNumber("Number of classes", 2);// number 3
+Dialog.addMessage("Classes should include the reference space!\nThey cannot be less than 2", 14, "red");
+Dialog.setInsets(0,20,0);
+Dialog.addNumber("For Length Density indicate the section thickness  =",50,0,2,unit);// number 4
+Dialog.addCheckbox("New Overlay", true);// check 1
+Dialog.addCheckbox("Random Offset", false);// check 2
+Dialog.addCheckbox("Show Vertical Axis", true); // check 3
 Dialog.addHelp(html); 
 Dialog.show(); 
 
+
 //grid parameters
-ntiles = Dialog.getNumber();;
-tile = h/ntiles;
-rad = tile/4;
-cycles = w/PI/4/rad;
-point = Dialog.getCheckbox();;
-points = Dialog.getCheckbox();;
-typeCycloid = Dialog.getChoice();
-th = Dialog.getNumber();
-color = Dialog.getChoice();
-colorC = Dialog.getChoice();
-new = Dialog.getCheckbox();
+GridType = Dialog.getChoice();// choice 1
+ntiles = Dialog.getNumber();// number 1 - tiles within short side
+tile = height/ntiles;//tile size
+rad = tile/4;//radius of the rolling cricle for cycloid generation
+cycles = width/PI/4/rad;// number of tiles within image width
+typeCycloid = Dialog.getChoice();//choice 2
+Lthck = Dialog.getNumber();// number 2
+color = Dialog.getChoice();// choice 3
+ClassNmb = Dialog.getNumber();// number 3
+SectThck = Dialog.getNumber();// number 4
+new = Dialog.getCheckbox();// check 1
+offset = Dialog.getCheckbox();// check 2
+arrow = Dialog.getCheckbox();// check 3
+
+
 if (new == true) Overlay.remove;
+
+//Naming counters 
+Dialog.create("Names for Counters"); 
+	for (i=0;i<ClassNmb;i++) { 
+		N = toString(i); 
+		Dialog.addString("Counter "+N+" = ", "Class name");//asking for counters names
+	}
+Dialog.addMessage("The last class should be assigned to a reference space!", 14, "red");
+Dialog.addHelp(html1);
+Dialog.show();
+
 
 //Creating offset
 off1 = random;
-off2 = random;
-offset = Dialog.getCheckbox(); 
+off2 = random; 
 if (offset == false) off1 = off2 = 0;
-xoff = -round(off1*PI*tile);
+xoff = -round(off1*PI*tile);//x is PI times wider than y
 yoff = -round(off2*tile);
 newStart[0] = xoff;
 newStart[1] = yoff;
 
-//vertical axis
-arrow = Dialog.getCheckbox();
 
-//Filling image with grid tiles
+//Drawing grid tiles
 for (i = 0; i <= ntiles+1; i++){
 	for (j = 0; j <= cycles+1; j++){
 		startSegm = stSegm;
 		drawCurve(typeCycloid, startSegm);
 		run("Select None");
-		}
+	}
 	newStart[0] = xoff;
 	newStart[1] = newStart[1] + tile;
 	i=i++;
@@ -113,167 +262,251 @@ for (i = 0; i <= ntiles+1; i++){
 		startSegm = 1-stSegm;
 		drawCurve(typeCycloid, startSegm);
 		run("Select None");
-		}
+	}
 	newStart[0] = xoff;
 	newStart[1] = newStart[1] + tile;
 }
 
-if (arrow == true){
-	makeArrow(th*2, h, th*2, 0, "notched large outline");
-	Roi.setStrokeWidth(th*2);
-	Roi.setStrokeColor(colorC);
+if (arrow == true){// drawing arrow showing vertical direction for VUR section
+	makeArrow(Lthck*2, height, Lthck*2, 0, "notched large outline");
+	Roi.setStrokeWidth(Lthck*2);
+	Roi.setStrokeColor(color);
 	run("Add Selection...");
 }
 
-//Drawing one segment of cycloid
-function makeSegm(x, y, rad, tmax, k1, k2, type){
+// Printing the parameters of the grid
+window = isOpen("Cycloid grid parameters"); 
+title = "[Cycloid grid parameters]"; 
+if (window == false){  
+	run("Text Window...", "name="+ title +"width=70 height=50 menu"); 
+	setLocation(0, 0); 
+}
+if (typeCycloid == "segmented") lr = 2;
+else lr = 1;
+
+lP = VxWidth*PI*tile/6/lr;
+
+print(title, "\nCycloid Grid for sample ["+name+"]"); 
+print(title, "\n\nImage size = "+width+"x"+height+" pixels");
+print(title, "\nPixel size = "+VxWidth+" "+unit);
+print(title, "\nScale = "+1/VxWidth+" pixels/"+unit);
+print(title, "\n\nGrid tiles per image = "+ntiles*width/PI/tile);
+print(title, "\nLine length per tile = "+tile*4*VxWidth/lr+" "+unit);
+print(title, "\nArea per point ="+tile*tile*2*PI*VxWidth*VxHeight/6+"  "+unit+"^2");
+print(title, "\nTest line per point(l/p) ="+lP+unit);
+print(title, "\n_______________________\n");
+
+print(title, "\nntiles ="+ntiles);
+print(title, "\ntile ="+tile);
+print(title, "\nrad = "+rad);
+print(title, "\ncycles ="+cycles);
+
+//Counter names reminder in parameter window 
+CtrName = newArray(ClassNmb);	 
+print(title,"\n\nCounters' names reminder:"); 
+	for (i=0;i<ClassNmb;i++) { 
+		N = toString(i); 
+		ClassName = Dialog.getString(); //getting class names from "naming counters" part
+		print(title,"\n   Counter "+N+" = "+ClassName); 
+		CtrName[i] = ClassName; //assign class name to specific counter
+	} 
+print(title, "\n________________________"); 
+
+//Counting intersections
+Classes = toString(ClassNmb);
+setTool("multipoint"); 
+run("Point Tool...", "type=Circle color=Yellow size=Large label counter=0"); //setting multipoint tool active
+waitForUser("Click [OK] button after counting finished!", "Use MultiPoint Tool (currently set) to count intersections."+"\n  "+"\nFor each of your "+Classes+" classes change the Counter by double clicking on \nMulti-point Tool button in ImageJ Menu"+"\n  "+"\nClick OK when you finish counting."); //wait for user to finish clicking
+setKeyDown("alt"); 
+run("Properties... "); //showing statistics of counting
+
+
+//Surface density estimation
+if (GridType == "Surface Density") {
+	print(title, "\n\nClasses counts and surface density");
+	headers = split(Table.headings,"\t");
+	j = headers.length-1;
+	RefSpc = Table.get(headers[j],Table.size-1);//reference space counts
+	ClassCnt = newArray(j);
+	print(title, "\nSurface density is calculated in relation to \nClass ["+CtrName[j-1]+"], which is the reference space with \n"+RefSpc+" point counts\n");
+	for (i=1; i<j; i++) {
+		ClassCnt[i] = Table.get(headers[i],Table.size-1);//class counts
+		print(title, "\nClass ["+CtrName[i-1]+"] = "+ClassCnt[i] +" counts");//print counts for class
+		print(title, "\nSurface density of ["+CtrName[i-1]+"] = "+2*ClassCnt[i]/RefSpc/lP+" "+unit+"¬-1 (or "+unit+"¬2/"+unit+"¬3)");//print surface density for class
+	}
+}
+
+//Length density estimation
+if (GridType == "Length Density") {
+	print(title, "\n\nClasses counts and length density");
+	headers = split(Table.headings,"\t");
+	j = headers.length-1;
+	RefSpc = Table.get(headers[j],Table.size-1);//reference space counts
+	ClassCnt = newArray(j);
+	print(title, "\nLength density is calculated in relation to \nClass ["+CtrName[j-1]+"], which is the reference space with \n"+RefSpc+" point counts\n");
+	for (i=1; i<j; i++) {
+		ClassCnt[i] = Table.get(headers[i],Table.size-1);//class counts
+		print(title, "\nClass ["+CtrName[i-1]+"] = "+ClassCnt[i] +" counts");//print counts for class
+		print(title, "\nLength density of ["+CtrName[i-1]+"] = "+2*ClassCnt[i]/RefSpc/lP/SectThck+" "+unit+"¬-2 (or "+unit+"/"+unit+"¬3)");//print surface density for class
+	}
+}
+
+print(title, "\n\nPress 'alt+y' to display the counts in a results table.");
+print(title, "\n============================");
+close("Counts_"+name); //closing results table
+
+//Drawing one segment (1/4) of cycloid
+	function makeSegm(x, y, rad, tmax, k1, k2, type){
 		xArr = newArray(nPoints);
 		yArr = newArray(nPoints);
 		
-		for (pt = 0; pt < nPoints; pt++){
-		t = pt/nPoints * tmax; 
-		xArr[pt] = newStart[0] + rad * (t+k1*sin(t));
-		yArr[pt] = newStart[1] + k2*rad * (1-cos(t));
+		if (GridType == "Surface Density") {
+			for (pt = 0; pt < nPoints; pt++){//formula for cycloid arc building
+				t = pt/nPoints * tmax; 
+				xArr[pt] = newStart[0] + rad * (t+k1*sin(t));
+				yArr[pt] = newStart[1] + k2*rad * (1-cos(t));
+			}
+			if (type == "solid"){
+				makeSelection("polyline", xArr, yArr);
+				run("Add Selection...", "width="+Lthck+" stroke="+color);
+			}
+			//last segment coordinates
+			newStart[0] = xArr[pt-1];
+			newStart[1] = yArr[pt-1];
+		} else {
+			for (pt = 0; pt < nPoints; pt++){//formula for cycloid arc building
+				t = pt/nPoints * tmax; 
+				xArr[pt] = newStart[1] + k2*rad * (1-cos(t));
+				yArr[pt] = newStart[0] + rad * (t+k1*sin(t));
+			}
+			if (type == "solid"){
+				makeSelection("polyline", xArr, yArr);
+				run("Add Selection...", "width="+Lthck+" stroke="+color);
+			}
+			//last segment coordinates
+			newStart[0] = yArr[pt-1];
+			newStart[1] = xArr[pt-1];
 		}
-		if (type == "solid"){
-		makeSelection("polyline", xArr, yArr);
-		run("Add Selection...", "width="+th+" stroke="+color);
-		}
-		//last segment coordinates
-		newStart[0] = xArr[pt-1];
-		newStart[1] = yArr[pt-1];
 		return newStart;
-		}
+	}
+
 
 //Drawing cycloid from segments
-function drawCurve(typeCycloid, startSegm){
+	function drawCurve(typeCycloid, startSegm){
 
-		//First segment
+		//First cycloid segment
 		if (typeCycloid == "segmented" && startSegm <= 0.5){
 			type = "empty";
-			} else {
+		} else {
 			type = "solid";
-			}
+		}
 		k1 = k2 = -1;
 		makeSegm(x0, y0, rad, tmax, k1, k2, type);
-		if (points == true){
-			orient = "V";
-			drawEndLine(orient);
-			}
-		if (point == true){
-			kk = 1;
-			drawCentralPoint(kk);
-			}
+		orient = "V";
+		drawEndLine(orient);
+		kk = 1;
+		drawCentralPoint(kk);
 
-		//Second segment
+		//Second cycloid segment
 		if (typeCycloid == "segmented" && startSegm > 0.5){
 			type = "empty";
-			} else {
+		} else {
 			type = "solid";
-			}
+		}
 		k1 = k2 = 1;
 		makeSegm(x0, y0, rad, tmax, k1, k2, type);
-		if (points == true){
-			orient = "H";
-			drawEndLine(orient);
-			}
+		orient = "H";
+		drawEndLine(orient);
 
-		//Third segment
+		//Third cycloid segment
 		if (typeCycloid == "segmented" && startSegm <= 0.5){
 			type = "empty";
-			} else {
+		} else {
 			type = "solid";
-			}
+		}
 		k1 = -1;
 		makeSegm(x0, y0, rad, tmax, k1, k2, type);
-		if (points == true){
-			orient = "V";
-			drawEndLine(orient);
-			}
-		if (point == true){
-			kk = -1;
-			drawCentralPoint(kk);
-			}
+		orient = "V";
+		drawEndLine(orient);
+		kk = -1;
+		drawCentralPoint(kk);
 
-		//Fourth segment
+		//Fourth cycloid segment
 		if (typeCycloid == "segmented" && startSegm > 0.5){
 			type = "empty";
-			} else {
+		} else {
 			type = "solid";
-			}
+		}
 		k1 = 1;
 		k2 = -1;
 		makeSegm(x0, y0, rad, tmax, k1, k2, type);
-		if (points == true){
 			orient = "H";
 			drawEndLine(orient);
-			}
-		}
+	}
 
 //End Points
-function drawEndLine(orient){
+	function drawEndLine(orient){
 		setColor(color);
-		setLineWidth(th);
-		y1 = newStart[1] - tile/24;
-		y2 = newStart[1] + tile/24;
-		y = newStart[1];
-		x = newStart[0];
-		x1 = newStart[0] - tile/24;
-		x2 = newStart[0] + tile/24;
-		if (orient == "V"){
-		Overlay.drawLine(x,y1,x,y2);
-		Overlay.add;
-		Overlay.show;
-		} else {
-		Overlay.drawLine(x1,y,x2,y);
-		Overlay.add;
-		Overlay.show;
-		} 
+		setLineWidth(Lthck);
+		if (GridType == "Surface Density") {
+			y1 = newStart[1] - tile/24;
+			y2 = newStart[1] + tile/24;
+			y = newStart[1];
+			x = newStart[0];
+			x1 = newStart[0] - tile/24;
+			x2 = newStart[0] + tile/24;
+			if (orient == "V"){
+				Overlay.drawLine(x,y1,x,y2);
+				Overlay.add;
+				Overlay.show;
+			} else {
+				Overlay.drawLine(x1,y,x2,y);
+				Overlay.add;
+				Overlay.show;
+			}
+		} else  {
+			y1 = newStart[0] - tile/24;
+			y2 = newStart[0] + tile/24;
+			y = newStart[0];
+			x = newStart[1];
+			x1 = newStart[1] - tile/24;
+			x2 = newStart[1] + tile/24;
+			if (orient == "H"){
+				Overlay.drawLine(x,y1,x,y2);
+				Overlay.add;
+				Overlay.show;
+			} else {
+				Overlay.drawLine(x1,y,x2,y);
+				Overlay.add;
+				Overlay.show;
+			}
+		}
 	}
 
 
 //Central Points
-function drawCentralPoint(kk){
-		setColor(colorC);
-		setLineWidth(th);
-		x1 = newStart[0] - tile/24;
-		x2 = newStart[0] + tile/24;
-		y = newStart[1] + kk*tile/2;
-		x = newStart[0];
-		y1 = newStart[1] + kk*tile/2 - tile/24;
-		y2 = newStart[1] + kk*tile/2 + tile/24;
+	function drawCentralPoint(kk){
+		setColor(color);
+		setLineWidth(Lthck);
+		if (GridType == "Surface Density") {
+			x1 = newStart[0] - tile/24;
+			x2 = newStart[0] + tile/24;
+			y = newStart[1] + kk*tile/2;
+			x = newStart[0];
+			y1 = newStart[1] + kk*tile/2 - tile/24;
+			y2 = newStart[1] + kk*tile/2 + tile/24;
+		} else {
+			x1 = newStart[1] + kk*tile/2 - tile/24;
+			x2 = newStart[1] + kk*tile/2 + tile/24;
+			y = newStart[0];
+			x = newStart[1] + kk*tile/2;
+			y1 = newStart[0] - tile/24;
+			y2 = newStart[0] + tile/24;
+		}
 		Overlay.drawLine(x,y1,x,y2); 
 		Overlay.add;
 		Overlay.drawLine(x1,y,x2,y); 
 		Overlay.add;
 		Overlay.show;
-		}
-
-// Printing the parameters of the grid
-getPixelSize(unit, pw, ph, pd); 
-window = isOpen("Cycloid grid parameters"); 
-title = "[Cycloid grid parameters]"; 
-if (window == false){  
-	run("Text Window...", "name="+ title +"width=60 height=16 menu"); 
-	setLocation(0, 0); 
 	}
-if (point == true) cp = 2; 
-else	cp = 0;
-if (points == true)ep = 4; 
-else	ap = 0;
-if (typeCycloid == "segmented") lr = 2;
-else lr = 1;
-
-print(title, "\nCycloid Grid for sample ["+name+"]"); 
-print(title, "\n\nImage size = "+w+"x"+h+" pixels");
-print(title, "\nPixel size = "+pw+" "+unit);
-print(title, "\nScale = "+1/pw+" pixels/"+unit);
-print(title, "\n\nGrid tiles per image = "+ntiles*w/PI/tile);
-print(title, "\nLine length per tile = "+tile*4*pw/lr+" "+unit);
-if (point || points == true) {
-	print(title, "\nArea per point ="+tile*tile*2*PI*pw*ph/(cp+ep)+"  "+unit+"^2");
-	print(title, "\nTest line per point(l/p) ="+pw*PI*tile/(cp+ep)/lr+"  "+unit);
-	}
-print(title, "\n_______________________\n");
-
 }
